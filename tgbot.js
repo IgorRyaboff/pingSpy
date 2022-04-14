@@ -57,7 +57,7 @@ function validateHref(str) {
     return validateString(str) && str.indexOf(':') != -1;
 }
 function validateString(str) {
-    return str && [...str].every(l => [...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _/\\!()@\'"#$%^:&?*[]{}`~.,'].indexOf(l) != -1);
+    return str && [...str].every(l => [...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 _/\\!()@\'"#$%^:&?*[]{}`~.,'].indexOf(l) != -1);
 }
 function makeid(length) {
     let result = '';
