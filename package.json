@@ -1,0 +1,50 @@
+{
+    "name": "pingspy",
+    "version": "1.0.0",
+    "description": "",
+    "main": "app.js",
+    "dependencies": {
+        "crypto-js": "^4.1.1",
+        "debug": "^4.3.4",
+        "denque": "^2.0.1",
+        "dottie": "^2.0.2",
+        "escape-html": "^1.0.3",
+        "express": "^4.17.3",
+        "generate-function": "^2.3.1",
+        "iconv-lite": "^0.6.3",
+        "inflection": "^1.13.2",
+        "is-property": "^1.0.2",
+        "long": "^4.0.0",
+        "lru-cache": "^6.0.0",
+        "moment-timezone": "^0.5.34",
+        "ms": "^2.1.2",
+        "mysql2": "^2.3.3",
+        "named-placeholders": "^1.1.2",
+        "pg-connection-string": "^2.5.0",
+        "pseudomap": "^1.0.2",
+        "retry-as-promised": "^5.0.0",
+        "safer-buffer": "^2.1.2",
+        "semver": "^7.3.6",
+        "seq-queue": "^0.0.5",
+        "sequelize": "^6.18.0",
+        "sequelize-pool": "^7.1.0",
+        "sqlstring": "^2.3.3",
+        "telegraf": "^4.7.0",
+        "toposort-class": "^1.0.1",
+        "wkx": "^0.5.0",
+        "yallist": "^4.0.0"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/IgorRyaboff/pingspy.git"
+    },
+    "author": "Igor Ryabov",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/IgorRyaboff/pingspy/issues"
+    },
+    "homepage": "https://github.com/IgorRyaboff/pingspy#readme"
+}
