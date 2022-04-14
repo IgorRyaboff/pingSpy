@@ -6,7 +6,7 @@ async function init() {
     global.db = db;
     try {
         await db.authenticate();
-        console.log(`Connected to DB ${dbcfg.database} on ${dbcfg.host}`);
+        console.log(`Connected to DB`);
     } catch (error) {
         console.error('Unable to connect to the DB:', error);
         process.exit(255);

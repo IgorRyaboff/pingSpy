@@ -4,7 +4,7 @@ const Express = require('express');
 const cryptoJs = require('crypto-js');
 
 let server = Express();
-server.listen(850);
+server.listen(require('./etc/pointmic.json').port);
 server.use(Express.json({
     type: 'application/json'
 }));
