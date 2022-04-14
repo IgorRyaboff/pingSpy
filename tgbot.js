@@ -2,7 +2,8 @@ const Sequelize = require('sequelize');
 /** @type {Sequelize.Sequelize} */ const db = global.db;
 const Telegraf = require('telegraf');
 const bot = new Telegraf.Telegraf(require('./etc/tg.json').token);
-const escape = require('escape-html');
+const fs = require('fs');
+const path = require('path');
 const cryptoJs = require('crypto-js');
 
 const mm = { text: 'MM', callback_data: 'mainMenu' };
@@ -73,8 +74,33 @@ bot.command('status', ctx => ctx.reply('PingSpy server is OK'));
 bot.command('start', ctx => mainMenu(ctx));
 bot.action('mainMenu', ctx => mainMenu(ctx));
 
-bot.command('points_setDefault', async (ctx, next) => {
+bot.command('userid', async ctx => {
     let user = await getUser(ctx);
+    if (!user) return mainMenu(ctx);
+    textAction(user);
+
+    ctx.reply('User ID: ' + user.id);
+});
+bot.command('isAdmin', async (ctx, next) => {
+    let user = await getUser(ctx, true);
+    if (!user) return next();
+    textAction(user);
+
+    ctx.reply('You are an admin');
+});
+bot.command('getAdmin', async (ctx, next) => {
+    let user = await getUser(ctx);
+    if (!user) return next();
+    if (!fs.existsSync(path.resolve(__dirname, 'etc', user.id + '.getAdmin'))) return next();
+    textAction(user);
+
+    fs.rmSync(path.resolve(__dirname, 'etc', user.id + '.getAdmin'));
+    user.isAdmin = true;
+    user.save();
+    ctx.reply('Admin access granted');
+});
+bot.command('points_setDefault', async (ctx, next) => {
+    let user = await getUser(ctx, true);
     if (!user) return next();
     textAction(user);
 
@@ -91,6 +117,17 @@ bot.command('points_setDefault', async (ctx, next) => {
     }
     pnt.save();
     ctx.reply('Set');
+});
+
+bot.action('register', async ctx => {
+    if (await getUser(ctx)) return mainMenu(ctx);
+
+    let user = db.models.User.build({
+        telegram: ctx.chat.id
+    });
+    await user.save();
+    await ctx.reply('You have successfully registered!');
+    mainMenu(ctx);
 });
 
 bot.action('monitors.list', async ctx => {
