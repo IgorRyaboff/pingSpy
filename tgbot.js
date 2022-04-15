@@ -81,23 +81,50 @@ bot.command('userid', async ctx => {
 
     ctx.reply('User ID: ' + user.id);
 });
-bot.command('isAdmin', async (ctx, next) => {
+bot.command('checkAdmin', async (ctx, next) => {
+    let user = await getUser(ctx);
+    if (!user) return next();
+
+    const uid = +ctx.message.text.split(' ')[1] || user.id;
+    if (isNaN(uid)) return next();
+    const addPth = path.resolve(__dirname, 'etc', uid + '.adminAdd');
+    const rmPth = path.resolve(__dirname, 'etc', uid + '.adminRm');
+
+    const adding = fs.existsSync(addPth);
+    const rming = fs.existsSync(rmPth);
+
+    if (!user.isAdmin && uid != user.id) return next();
+    if (adding && rming) return ctx.reply('Both add and remove hooks exist. There can be only one!');
+    
+    let adm = user.id == uid ? user : (await db.models.User.findByPk(uid));
+    if (!adm) return ctx.reply('This user doesn\'t exits');
+
+    if (adding) {
+        fs.rmSync(addPth);
+        if (adm.isAdmin) return ctx.reply(adm == user ? 'You\'re an admin' : 'This user is an admin');
+        adm.isAdmin = true;
+        adm.save();
+        ctx.reply(adm == user ? `You're now an admin!` : `This user is now an admin!`);
+    }
+    else if (rming) {
+        fs.rmSync(rmPth);
+        if (!adm.isAdmin) return adm == user ? next() : ctx.reply('This user is NOT an admin');
+        adm.isAdmin = false;
+        adm.save();
+        ctx.reply(adm == user ? `You're NOT an admin anymore` : `This user is NOT an admin anymore`);
+    }
+    else {
+        if (adm.isAdmin) ctx.reply(adm == user ? `You're an admin` : `This user is an admin`);
+        else adm == user ? next() : ctx.reply('This user is NOT an admin');
+    }
+});
+bot.command('admins', async (ctx, next) => {
     let user = await getUser(ctx, true);
     if (!user) return next();
     textAction(user);
 
-    ctx.reply('You are an admin');
-});
-bot.command('getAdmin', async (ctx, next) => {
-    let user = await getUser(ctx);
-    if (!user) return next();
-    if (!fs.existsSync(path.resolve(__dirname, 'etc', user.id + '.getAdmin'))) return next();
-    textAction(user);
-
-    fs.rmSync(path.resolve(__dirname, 'etc', user.id + '.getAdmin'));
-    user.isAdmin = true;
-    user.save();
-    ctx.reply('Admin access granted');
+    let list = (await db.models.User.findAll({ where: { isAdmin: true }, order: [['id', 'ASC']] })).map(u => u.id);
+    ctx.reply(`All admins (${list.length}):\n\n${list.join('\n')}`);
 });
 bot.command('points_setDefault', async (ctx, next) => {
     let user = await getUser(ctx, true);
@@ -141,7 +168,7 @@ bot.action('monitors.list', async ctx => {
             inline_keyboard: [
                 [{ text: 'MM', callback_data: 'mainMenu' }],
                 [{ text: 'Add new', callback_data: 'monitors.new' }],
-                ...monitors.map(m => [{ text: (m.status == 'up' ? '🟢' : '🔴') + m.description, callback_data: 'monitors.manage:' + m.id }])
+                ...monitors.sort((a, b) => a.description.localeCompare(b.description)).map(m => [{ text: (m.status == 'up' ? '🟢' : '🔴') + m.description, callback_data: 'monitors.manage:' + m.id }])
             ]
         }
     });

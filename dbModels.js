@@ -94,10 +94,10 @@ module.exports = (async () => {
                 if (p.status == 'down') {
                     (await db.models.Monitor.findAll({
                         where: {
-                            point: p.id,
-                            status: {
-                                [Sequelize.Op.ne]: 'pointDown'
-                            }
+                            [Sequelize.Op.and]: [
+                                { status: { [Sequelize.Op.ne]: 'pointDown' } },
+                                { [Sequelize.Op.or]: p.isDefault ? [ { point: p.id }, { point: null } ] : [ { point: p.id } ] }
+                            ]
                         }
                     })).forEach(m => {
                         m.status = 'pointDown';
