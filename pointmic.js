@@ -92,7 +92,10 @@ server.post('/announce', async (req, resp) => {
             continue;
         }
         if (monitor.href != receivedHref) {
-            newMonitorsObj[i] = monitor.href;
+            newMonitorsObj[i] = {
+                href: monitor.href,
+                status: monitor.status
+            };
             //console.log('!href');
             continue; // We don't receive this status because this measurement was done with outdated or invalid href
         }
@@ -119,10 +122,14 @@ server.post('/announce', async (req, resp) => {
     });
     else andPart.push({ point: point.id });
     let newMonitors = await db.models.Monitor.findAll({ where: {
-        [Sequelize.Op.and]: andPart
+        [Sequelize.Op.and]: andPart,
+        enabled: true
     }});
     newMonitors.forEach(m => {
-        newMonitorsObj[m.id] = m.href;
+        newMonitorsObj[m.id] = {
+            status: m.status,
+            href: m.href
+        };
     });
 
     ok(resp, {
@@ -132,10 +139,10 @@ server.post('/announce', async (req, resp) => {
     });
 });
 
-setInterval(async () => {
+async function processFallenPoints() {
     let fallenPoints = await db.models.Point.findAll({
         where: {
-            status: { [Sequelize.Op.ne]: 'up' },
+            status: 'up',
             [Sequelize.Op.and]: [
                 { announcedAt: { [Sequelize.Op.ne]: null } },
                 { announcedAt: { [Sequelize.Op.lt]: new Date(+new Date - 1000 * 60 * 3) } }
@@ -147,4 +154,6 @@ setInterval(async () => {
         p.status = 'down';
         await p.save();
     }
-}, 30000);
+}
+setInterval(() => processFallenPoints(), 30000);
+processFallenPoints();

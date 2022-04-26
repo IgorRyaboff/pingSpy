@@ -45,6 +45,7 @@ module.exports = (async () => {
             afterUpdate(m) {
                 if (m.isNewRecord || !m.previous('status') || m.status == m.previous('status')) return;
                 tg.monitorStatusChanged(m, m.previous('status'));
+                console.log(`Monitor ${m.id} status changed from ${String(m.previous('status')).toUpperCase()} to ${m.status.toUpperCase()}`);
             }
         },
         paranoid: true
@@ -91,6 +92,7 @@ module.exports = (async () => {
             async afterSave(p) {
                 if (p.isNewRecord || !p.previous('status') || p.status == p.previous('status')) return;
                 tg.pointStatusChanged(p, p.previous('status'));
+                console.log(`Point ${p.id} status changed from ${String(p.previous('status')).toUpperCase()} to ${p.status.toUpperCase()}`);
                 if (p.status == 'down') {
                     (await db.models.Monitor.findAll({
                         where: {
