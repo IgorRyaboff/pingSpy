@@ -32,6 +32,11 @@ module.exports = (async () => {
                 this.status = value ? 'unknown' : 'down';
             }
         },
+        notify: {
+            type: Sequelize.DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
+        },
         status: {
             type: Sequelize.DataTypes.ENUM(['up', 'down', 'pointDown', 'noDefaultPoint', 'unknown']),
             defaultValue: 'unknown',
@@ -44,7 +49,7 @@ module.exports = (async () => {
         hooks: {
             afterUpdate(m) {
                 if (m.isNewRecord || !m.previous('status') || m.status == m.previous('status')) return;
-                tg.monitorStatusChanged(m, m.previous('status'));
+                if (m.notify) tg.monitorStatusChanged(m, m.previous('status'));
                 console.log(`Monitor ${m.id} status changed from ${String(m.previous('status')).toUpperCase()} to ${m.status.toUpperCase()}`);
             }
         },
@@ -67,6 +72,11 @@ module.exports = (async () => {
                 this.setDataValue('enabled', value);
                 this.status = value ? 'unknown' : 'down';
             }
+        },
+        notify: {
+            type: Sequelize.DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
         },
         tokenHash: {
             type: Sequelize.DataTypes.STRING,
@@ -94,7 +104,7 @@ module.exports = (async () => {
         hooks: {
             async afterSave(p) {
                 if (p.isNewRecord || !p.previous('status') || p.status == p.previous('status')) return;
-                tg.pointStatusChanged(p, p.previous('status'));
+                if (p.notify) tg.pointStatusChanged(p, p.previous('status'));
                 console.log(`Point ${p.id} status changed from ${String(p.previous('status')).toUpperCase()} to ${p.status.toUpperCase()}`);
                 if (p.status == 'down') {
                     (await db.models.Monitor.findAll({

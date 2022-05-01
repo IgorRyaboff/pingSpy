@@ -200,11 +200,17 @@ bot.action(/^monitors\.manage:./g, async ctx => {
     });
     if (!mon) return mainMenu(ctx);
 
-    ctx.reply(`Monitor "${mon.description}" (ID: ${mon.id})\n${mon.enabled ? 'Enabled' : 'Disabled'}\nPoint: ${mon.point || 'Default'}\nHref: "${mon.href}"\nStatus: ${mon.status == 'up' ? '🟢' : '🔴'} ${mon.status.toUpperCase()}`, {
+    ctx.reply(`Monitor "${mon.description}" (ID: ${mon.id})`
+    + `\n${mon.enabled ? 'Enabled' : 'Disabled'}`
+    + `\nNotifying: ${mon.notify ? 'Yes' : 'No'}`
+    + `\nPoint: ${mon.point || 'Default'}`
+    + `\nHref: "${mon.href}"`
+    + `\nStatus: ${mon.status == 'up' ? '🟢' : '🔴'} ${mon.status.toUpperCase()}`, {
         reply_markup: {
             inline_keyboard: [
                 [mm, { text: 'Back to list', callback_data: 'monitors.list' }],
                 [{ text: mon.enabled ? 'Disable' + (mon.status == 'up' ? ' (this will DOWN the monitor)' : '') : 'Enable', callback_data: 'monitors.switchEnabled:' + mon.id }],
+                [{ text: (mon.notify ? 'Disable' : 'Enable') + ' notifications', callback_data: 'monitors.switchNotify:' + mon.id }],
                 [{ text: 'Change description', callback_data: 'monitors.setDescription:' + mon.id }],
                 [{ text: 'Change href', callback_data: 'monitors.setHref:' + mon.id }],
                 [{ text: 'Change point', callback_data: 'monitors.setPoint:' + mon.id }],
@@ -236,6 +242,24 @@ bot.action(/^monitors\.setDescription:./g, async ctx => {
             ]
         }
     });
+});
+bot.action(/^monitors\.switchNotify:./g, async ctx => {
+    let user = await getUser(ctx);
+    if (!user) return mainMenu(ctx);
+    textAction(user);
+
+    const mid = ctx.callbackQuery.data.split(':')[1];
+    let mon = await db.models.Monitor.findOne({
+        where: {
+            id: mid,
+            owner: user.id
+        }
+    });
+    if (!mon) return mainMenu(ctx);
+
+    mon.notify = !mon.notify;
+    await mon.save();
+    ctx.reply(mon.notify ? 'Bot will now notify you if monitor status changes' : 'Bot will not notify you if monitor status changes');
 });
 bot.action(/^monitors\.setHref:./g, async ctx => {
     let user = await getUser(ctx);
@@ -372,11 +396,16 @@ bot.action(/^points\.manage:./g, async ctx => {
     if (!pnt) return mainMenu(ctx);
 
     let adt = Math.floor((new Date - pnt.announcedAt) / 1000 / 60);
-    ctx.reply(`Point #${pnt.id}${pnt.isDefault ? '\n⚠️ Is default point' : ''}\n\n${pnt.enabled ? 'Enabled' : 'Disabled'}\n${pnt.status == 'up' ? '🟢' : '🔴'} ${pnt.status.toUpperCase()}\nVersion: ${pnt.version || 'unknown'}\nLast announce: ${adt} m ago`, {
+    ctx.reply(`Point #${pnt.id}${pnt.isDefault ? '\n⚠️ Is default point' : ''}`
+    + `\n\n${pnt.enabled ? 'Enabled' : 'Disabled'}`
+    + `\nNotifying: ${pnt.notify ? 'Yes' : 'No'}`
+    + `\n${pnt.status == 'up' ? '🟢' : '🔴'} ${pnt.status.toUpperCase()}`
+    + `\nVersion: ${pnt.version || 'unknown'}\nLast announce: ${adt} m ago`, {
         reply_markup: {
             inline_keyboard: [
                 [ mm, { text: 'Back to list', callback_data: 'points.list' } ],
                 [ { text: pnt.enabled ? (pnt.status == 'up' ? 'Stop and disable' : 'Disable') : 'Enable', callback_data: `points.switchEnabled:${pnt.id}` } ],
+                [ { text: (pnt.notify ? 'Disable' : 'Enable') + ' notifications', callback_data: `points.switchNotify:${pnt.id}` } ],
                 [ { text: 'Reset token', callback_data: `points.resetToken:${pnt.id}` } ]
             ]
         }
@@ -400,6 +429,19 @@ bot.action(/^points\.switchEnabled:./g, async ctx => {
             ]
         }
     });
+});
+
+bot.action(/^points\.switchNotify:./g, async ctx => {
+    let user = await getUser(ctx);
+    if (!user) return mainMenu(ctx);
+    textAction(user);
+    let id = ctx.callbackQuery.data.split(':')[1];
+    let pnt = await db.models.Point.findOne({ where: { id: id, owner: user.id } });
+    if (!pnt) return mainMenu(ctx);
+
+    pnt.notify = !pnt.notify;
+    await pnt.save();
+    ctx.reply(pnt.notify ? 'Bot will now notify you if point status changes' : 'Bot will not notify you if point status changes');
 });
 
 bot.action(/^points\.resetToken:./g, async ctx => {
