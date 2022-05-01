@@ -50,6 +50,7 @@ server.post('/announce', async (req, resp) => {
         point.status = 'up';
     }
     point.announcedAt = new Date;
+    point.version = req.body.v || null;
     await point.save();
 
     if (!req.body.data) return fail(resp, 'NO_DATA_ARG');

@@ -70,7 +70,7 @@ function makeid(length) {
     return result;
 }
 
-bot.command('status', ctx => ctx.reply('PingSpy server is OK'));
+bot.command('status', ctx => ctx.reply('PingSpy server is OK\nVersion: ' + require('./package.json').version));
 bot.command('start', ctx => mainMenu(ctx));
 bot.action('mainMenu', ctx => mainMenu(ctx));
 
@@ -372,7 +372,7 @@ bot.action(/^points\.manage:./g, async ctx => {
     if (!pnt) return mainMenu(ctx);
 
     let adt = Math.floor((new Date - pnt.announcedAt) / 1000 / 60);
-    ctx.reply(`Point #${pnt.id}${pnt.isDefault ? '\n⚠️ Is default point' : ''}\n\n${pnt.enabled ? 'Enabled' : 'Disabled'}\n${pnt.status == 'up' ? '🟢' : '🔴'} ${pnt.status.toUpperCase()}\nLast announce: ${adt} m ago`, {
+    ctx.reply(`Point #${pnt.id}${pnt.isDefault ? '\n⚠️ Is default point' : ''}\n\n${pnt.enabled ? 'Enabled' : 'Disabled'}\n${pnt.status == 'up' ? '🟢' : '🔴'} ${pnt.status.toUpperCase()}\nVersion: ${pnt.version || 'unknown'}\nLast announce: ${adt} m ago`, {
         reply_markup: {
             inline_keyboard: [
                 [ mm, { text: 'Back to list', callback_data: 'points.list' } ],

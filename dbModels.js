@@ -81,6 +81,9 @@ module.exports = (async () => {
             defaultValue: 'unknown',
             allowNull: false
         },
+        version: {
+            type: Sequelize.DataTypes.STRING
+        },
         announcedAt: {
             type: Sequelize.DataTypes.DATE
         }
